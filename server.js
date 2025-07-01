@@ -1,9 +1,11 @@
 const server = require('express')();
-const http = require('http').createServer(server);
 const cors = require('cors');
 const shuffle = require('shuffle-array');
 let players = {};
 let readyCheck = 0;
+let gameState = "Initializing";
+
+const http = require('http').createServer(server);
 
 const io = require('socket.io')(http, {
     cors: {
@@ -28,7 +30,7 @@ io.on('connection', function(socket) {
 
     socket.on('dealDeck', function(socketId) {
         players[socketId].inDeck = shuffle(["boolean", "ping"]);
-        console.log(players);
+        console.log("players", players);
         if (Object.keys(players).length < 2) return;
         io.emit('changeGameState', "Initializing");
     });
@@ -36,9 +38,28 @@ io.on('connection', function(socket) {
     socket.on('dealCards', function (socketId) {
         for (let i = 0; i < 5; i++) {
             if (players[socketId].inDeck.length === 0) {
-                
+                    players[socketId].inDeck = shuffle(["boolean", "ping"]);
+            }
+            players[socketId].inHand.push(players[socketId].inDeck.shift());
+            console.log(players);
+            io.emit('dealCards', socketId, players[socketId].inHand);
+            readyCheck++;
+            if (readyCheck >= 2) {
+                gameState = "Ready";
+                io.emit('changeGameState', gameState);
             }
         }
+    });
+
+    socket.on('cardPlayed', function(cardName, socketId) {
+        io.emit('cardPlayed', cardName, socketId);
+        io.emit('changeTurn');
+    });
+
+    socket.on('end', function () {
+        socket.disconnect();
+        console.log("Desconectando usuário: " + socket.id);
+        delete players[socket.id];
     })
 })
 
