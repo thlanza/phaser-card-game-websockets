@@ -2,13 +2,15 @@ import { io } from "socket.io-client";
 
 export default class SocketHandler {
     constructor(scene) {
-        scene.socket = io('http://localhost:3000');
+        scene.socket = io('http://localhost:3000', {
+            reconnection: false
+        });
         
         scene.socket.on('connect', () => {
             console.log("Conectado!");
             scene.socket.emit('dealDeck', scene.socket.id);
         });
-
+        
         scene.socket.on('firstTurn', () => {
             scene.GameHandler.changeTurn();
         });
@@ -22,6 +24,10 @@ export default class SocketHandler {
                 scene.dealCards.setColor('#00ffff');
             }
         });
+
+        scene.socket.on('changeTurn', () => {
+            scene.GameHandler.changeTurn();
+        })
 
         scene.socket.on('dealCards', (socketId, cards) => {
             if (socketId === scene.socket.id) {
@@ -38,8 +44,14 @@ export default class SocketHandler {
         scene.socket.on('cardPlayed', (cardName, socketId) => {
             if (socketId !== scene.socket.id) {
                 scene.GameHandler.opponentHand.shift().destroy();
-                scene.DeckHandler.dealCard(scene.dropZone.x, scene.dropZone.y, cardName, "opponentCard");
+                scene.DeckHandler.dealCard((scene.dropZone.x - 350) + (scene.dropZone.data.values.cards * 50), scene.dropZone.y, cardName, "opponentCard");
+                scene.dropZone.data.values.cards++;
             }
         })
+
+        scene.socket.on('disconnect', (reason) => {
+            console.log("Desconectado do servidor: " + reason);
+        })
+
     }
 }

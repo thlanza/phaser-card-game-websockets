@@ -56,9 +56,8 @@ io.on('connection', function(socket) {
         io.emit('changeTurn');
     });
 
-    socket.on('end', function () {
-        socket.disconnect();
-        console.log("Desconectando usuário: " + socket.id);
+    socket.on('disconnect', function(reason) {
+        console.log("Usuário desconectou: " + socket.id + " - Motivo: " + reason);
         delete players[socket.id];
     })
 })
