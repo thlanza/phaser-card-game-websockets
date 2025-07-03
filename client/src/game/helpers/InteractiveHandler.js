@@ -60,8 +60,6 @@ export default class InteractiveHandler {
                 scene.dropZone.data.values.cards++;
 
                 const index = scene.GameHandler.playerHand.indexOf(gameObject);
-                console.log("scene.gamehandler.playerHand length before" + scene.GameHandler.playerHand.length);
-                console.log("scene.gamehandler.opponentHand' length before" + scene.GameHandler.opponentHand.length);
                 scene.input.setDraggable(gameObject, false);
                 scene.socket.emit('cardPlayed', gameObject.data.values.name, scene.socket.id);
                 if (index !== -1) {
