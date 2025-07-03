@@ -41,13 +41,13 @@ io.on('connection', function(socket) {
                     players[socketId].inDeck = shuffle(["boolean", "ping"]);
             }
             players[socketId].inHand.push(players[socketId].inDeck.shift());
-            console.log(players);
-            io.emit('dealCards', socketId, players[socketId].inHand);
-            readyCheck++;
-            if (readyCheck >= 2) {
-                gameState = "Ready";
-                io.emit('changeGameState', gameState);
-            }
+        }
+        io.emit('dealCards', socketId, players[socketId].inHand);
+        console.log(players);
+        readyCheck++;
+        if (readyCheck >= 2) {
+            gameState = "Ready";
+            io.emit('changeGameState', gameState);
         }
     });
 

@@ -18,14 +18,16 @@ export default class InteractiveHandler {
 
         scene.input.on('pointerover', (event, gameObjects) => {
             let pointer = scene.input.activePointer;
-            if (gameObjects[0].type === "Image" && gameObjects[0].data.list.name !== "cardBack") {
-                scene.cardPreview = scene.add.image(pointer.worldX, pointer.worldY, gameObjects[0].data.values.sprite).setScale(0.5, 0.5);
+            if (gameObjects[0] && gameObjects[0]?.type === "Image" && gameObjects[0].data?.list.name !== "cardBack") {
+                scene.cardPreview = scene.add.image(pointer.worldX, pointer.worldY, gameObjects[0].data?.values.sprite).setScale(0.5, 0.5);
             }
         });
 
         scene.input.on('pointerout', (event, gameObjects) => {
-            if (gameObjects[0].type === "Image" && gameObjects[0].data.list.name !== "cardBack") {
-                scene.cardPreview.setVisible(false);
+            if (gameObjects[0] && gameObjects[0]?.type === "Image" && gameObjects[0].data?.list.name !== "cardBack") {
+                if (scene.cardPreview) {
+                    scene.cardPreview.setVisible(false);
+                }
             }
         });
 
@@ -37,7 +39,9 @@ export default class InteractiveHandler {
         scene.input.on('dragstart', (pointer, gameObject) => {
             gameObject.setTint(0xff69b4);
             scene.children.bringToTop(gameObject);
-            scene.cardPreview.setVisible(false);
+            if (scene.cardPreview) {
+                scene.cardPreview.setVisible(false);
+            }
         });
 
         scene.input.on('dragend', (pointer, gameObject, dropped) => {
@@ -54,8 +58,18 @@ export default class InteractiveHandler {
                 gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
                 gameObject.y = dropZone.y;
                 scene.dropZone.data.values.cards++;
+
+                const index = scene.GameHandler.playerHand.indexOf(gameObject);
+                console.log("scene.gamehandler.playerHand length before" + scene.GameHandler.playerHand.length);
+                console.log("scene.gamehandler.opponentHand' length before" + scene.GameHandler.opponentHand.length);
                 scene.input.setDraggable(gameObject, false);
                 scene.socket.emit('cardPlayed', gameObject.data.values.name, scene.socket.id);
+                if (index !== -1) {
+                    scene.GameHandler.playerHand.splice(index, 1);
+                    gameObject.destroy();
+                }
+                console.log("scene.gamehandler.playerHand length after" + scene.GameHandler.playerHand.length);
+                console.log("scene.gamehandler.opponentHand' length after" + scene.GameHandler.opponentHand.length);
             } else {
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
